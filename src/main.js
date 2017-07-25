@@ -34,14 +34,6 @@ var createScene = function (camera) {
     // Move the sphere upward 1/2 its height
     sphere.position.y = 10;
 
-    var texture1 = new BABYLON.Texture("textures/grass.png", scene);
-
-    // // Let's try our built-in 'ground' shape.  Params: name, width, depth, subdivisions, scene
-    // var ground = BABYLON.Mesh.CreateGround("ground1", 100, 100, 24, scene);
-    // ground.material = new BABYLON.StandardMaterial("texture1", scene);
-    // ground.checkCollisions = true;
-    // scene.enablePhysics(null, new BABYLON.OimoJSPlugin());
-
     // Let's try our built-in 'ground' shape.  Params: name, width, depth, subdivisions, scene
     var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
     groundMaterial.diffuseTexture = new BABYLON.Texture("textures/grass.jpg", scene);
@@ -49,6 +41,8 @@ var createScene = function (camera) {
     groundMaterial.diffuseTexture.vScale = 20;
     var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/ground_heights.png", 300, 300, 100, 0, 45, scene);
     ground.material = groundMaterial;
+    ground.checkCollisions = true;
+    scene.enablePhysics(null, new BABYLON.OimoJSPlugin());
 
 
     sphere.physicsImpostor = new BABYLON.PhysicsImpostor(sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1 }, scene);
