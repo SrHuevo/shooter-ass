@@ -23,46 +23,67 @@ var createScene = function (camera) {
     });
 
     // This creates a light, aiming 0,1,0 - to the sky.
-    var light = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 1, 0), scene);
+    var sun = new BABYLON.HemisphericLight("sun", new BABYLON.Vector3(0, 1, 0), scene);
     // Dim the light a small amount
-    light.intensity = .5;
+    sun.intensity = .5;
 
-    createSkybox(scene);
+    scene.enablePhysics(new BABYLON.Vector3(0,-9.81, 0), new BABYLON.OimoJSPlugin());
+
+    // Skybox
+    var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
+    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+    skyboxMaterial.backFaceCulling = false;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/TropicalSunnyDay", scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+    skyboxMaterial.disableLighting = true;
+    skybox.material = skyboxMaterial;
 
     // Let's try our built-in 'sphere' shape. Params: name, subdivisions, size, scene
     var sphere = BABYLON.Mesh.CreateSphere("sphere1", 16, 2, scene);
     // Move the sphere upward 1/2 its height
     sphere.position.y = 10;
 
+    // Ground
+    var extraGround = BABYLON.Mesh.CreateGround("extraGround", 1000, 1000, 1, scene, false);
+    var extraGroundMaterial = new BABYLON.StandardMaterial("extraGround", scene);
+    extraGroundMaterial.diffuseTexture = new BABYLON.Texture("textures/grass.jpg", scene);
+    extraGroundMaterial.diffuseTexture.uScale = 60;
+    extraGroundMaterial.diffuseTexture.vScale = 60;
+    extraGround.position.y = -2.05;
+    extraGround.material = extraGroundMaterial;
+
     // Let's try our built-in 'ground' shape.  Params: name, width, depth, subdivisions, scene
     var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
     groundMaterial.diffuseTexture = new BABYLON.Texture("textures/grass.jpg", scene);
-    groundMaterial.diffuseTexture.uScale = 20;
-    groundMaterial.diffuseTexture.vScale = 20;
-    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/ground_heights.png", 300, 300, 100, 0, 45, scene);
+    groundMaterial.diffuseTexture.uScale = 6;
+    groundMaterial.diffuseTexture.vScale = 6;
+    groundMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+
+    var ground = BABYLON.Mesh.CreateGroundFromHeightMap("ground", "textures/heightMap.png", 100, 100, 100, 0, 10, scene, false);
+    ground.position.y = -2.0;
     ground.material = groundMaterial;
     ground.checkCollisions = true;
-    scene.enablePhysics(null, new BABYLON.OimoJSPlugin());
 
+    // Water
+    BABYLON.Engine.ShadersRepository = "";
+    var water = BABYLON.Mesh.CreateGround("water", 1000, 1000, 1, scene, false);
+    var waterMaterial = new WaterMaterial("water", scene, sun);
+    waterMaterial.refractionTexture.renderList.push(extraGround);
+    waterMaterial.refractionTexture.renderList.push(ground);
+
+    waterMaterial.reflectionTexture.renderList.push(ground);
+    waterMaterial.reflectionTexture.renderList.push(skybox);
+
+    // water.material = waterMaterial;
 
     sphere.physicsImpostor = new BABYLON.PhysicsImpostor(sphere, BABYLON.PhysicsImpostor.SphereImpostor, { mass: 1 }, scene);
     ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0.5, restitution: 1 }, scene);
+
     // Leave this function
     return scene;
 };  // End of createScene function
-
-function createSkybox(scene) {
-    // Skybox
-	var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
-    var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
-	skyboxMaterial.backFaceCulling = false;
-	skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/TropicalSunnyDay", scene);
-	skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-	skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-	skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-	skyboxMaterial.disableLighting = true;
-	skybox.material = skyboxMaterial;
-}
 
 // Get the canvas element from our HTML above
 var canvas = document.getElementById("renderCanvas");
