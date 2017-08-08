@@ -71,7 +71,7 @@ var createScene = function (camera) {
   // water.material = waterMaterial;
 */
   sphere.physicsImpostor = new BABYLON.PhysicsImpostor(sphere, BABYLON.PhysicsImpostor.SphereImpostor, {
-    mass: 1,
+    mass: 0,
     friction: 0.5,
     restitution: 10
   }, scene)
